@@ -20,5 +20,6 @@ A Linux tool to take screenshots and screencaps under X11.
 `screentool.lua measure screencap`: lets you select a window or a rectangular area and starts recording it.
 `screentool.lua stop compress save copy`: stops a recording, encodes it to reduce its size, then saves it to disk and copies its path.
 
-## Edit
+## Modes
+### Edit
 In order to use the `edit` action to edit a screenshot, you need to provide an executable file in `~/.local/share/screentool.lua/editor` that takes the **content** of a PNG file as input and provides the **content** of the edited PNG file as output.
