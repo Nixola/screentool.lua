@@ -22,4 +22,4 @@ A Linux tool to take screenshots and screencaps under X11.
 
 ## Modes
 ### Edit
-In order to use the `edit` action to edit a screenshot, you need to provide an executable file in `~/.local/share/screentool.lua/editor` that takes the **content** of a PNG file as input and provides the **content** of the edited PNG file as output.
+In order to use the `edit` action to edit a screenshot, you need to provide an executable file in `~/.local/share/screentool.lua/editor` that takes the **content** of a PNG file as input and provides the **content** of the edited PNG file as output. A "reference implementation" can be found [here](https://github.com/Nixola/screentool.edit).
