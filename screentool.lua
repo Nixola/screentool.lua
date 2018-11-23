@@ -132,7 +132,7 @@ addMode("edit", function(args)
 		return args
 	end
 
-	local command = ("cat '%s' | %'s'"):format(source, settings.misc .. "editor")
+	local command = ("cat '%s' | '%s'"):format(source, settings.misc .. "editor")
 	print(command)
 	local p = io.popen(command)
 	local r = p:read "*a"
