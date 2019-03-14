@@ -7,24 +7,27 @@ local display = os.getenv("DISPLAY")
 local settings = {
 	host = {
 		internal = "web:CookieSite/static/%s/",
-		external = "https://static.nixo.la/%s/"
+		external = "https://static.nixo.la/%s/",
 	},
 	tmp = "/tmp/",
 	cache = home .. "/.cache/screentool.lua/",
 	misc = home .. "/.local/share/screentool.lua/",
 	path = {
 		img = home .. "/Pictures/",
-		vid = home .. "/Videos/"
+		vid = home .. "/Videos/",
 	},
 	formats = {
 		img = "png",
 		vid = "mp4",
-		rawvid = "mkv"
+		rawvid = "mkv",
+	},
+	audio = {
+		channels = 2,
 	},
 	Xtargets = {
 		img = "image/png",
-		str = "UTF8_STRING"
-	}
+		str = "UTF8_STRING",
+	},
 }
 
 os.execute("mkdir -p \"" .. settings.cache .. "\"")
@@ -166,6 +169,11 @@ addMode("screencap", function(args)
 
 	local ffmpeg = io.popen(cmd)
 	os.execute("sleep 1")
+	for i = 1, settings.audio.channels do
+		os.execute(("jack_connect system:monitor_%d ffmpeg_screentool:input_%d"):format(i, i))
+	end
+	--[[ This is in case you don't want to, or can't, enable JACK monitor. It'll just grab anything that goes to output.
+	os.execute("sleep 1")
 	local jack_lsp = io.popen("jack_lsp -c")
 	local connections = {}
 	for line in (jack_lsp:read "*a"):gmatch("([^\n]+)") do
@@ -188,6 +196,7 @@ addMode("screencap", function(args)
 			end
 		end
 	end
+	--]]
 
 	ffmpeg:close()
 end)
