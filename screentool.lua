@@ -93,6 +93,9 @@ addMode("measure", function(args)
 		return success, code
 	end
 	local g, w, h, x, y = geometry, geometry:match("(%d+)x(%d+)([+-]%d+)([+-]%d+)")
+    if not (w and h and x and y) then
+        return false
+    end
 	args.geometry = g
 	args.width = tonumber(w)
 	args.height = tonumber(h)
@@ -104,7 +107,6 @@ end)
 addMode("screenshot", function(args)
 	local g = args and args.geometry
 	g = g and "-g "..g or ""
-	print(g)
 	local cmd = "maim -f " .. settings.formats.img .. " " .. g
 	print(cmd)
 	local p = io.popen("maim -f " .. settings.formats.img .. " " .. g, "r")
@@ -207,6 +209,7 @@ addMode("stop", function(args)
 	args.filename = filename
 	args.type = "vid"
 	notify "Recording stopped."
+    return args
 end)
 
 addMode("compress", function(args)
@@ -288,5 +291,8 @@ local arg = {}
 for i, v in pairs(args) do print(i, v) end
 for i, v in ipairs(args) do
 	print(v)
-	modes[v](arg)
+	if not modes[v](arg) then
+        print "Aborted."
+        break
+    end
 end
