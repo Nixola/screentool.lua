@@ -6,8 +6,10 @@ local home = os.getenv("HOME")
 local display = os.getenv("DISPLAY")
 local settings = {
 	host = {
-		internal = "web:CookieSite/static/%s/",
-		external = "https://static.nixo.la/%s/",
+		--internal = "web:CookieSite/static/%s/",
+		internal = "web:/srv/www/htdocs/img/",
+		--external = "https://static.nixo.la/%s/",
+		external = "https://nixo.la/img/",
 	},
 	tmp = "/tmp/",
 	cache = home .. "/.cache/screentool.lua/",
@@ -104,6 +106,11 @@ addMode("measure", function(args)
 	return args
 end)
 
+addMode("wait_2s", function(args)
+	os.execute("sleep 2")
+	return args
+end)
+
 addMode("screenshot", function(args)
 	local g = args and args.geometry
 	g = g and "-g "..g or ""
@@ -165,14 +172,16 @@ addMode("screencap", function(args)
 	end
 	local tmppath = settings.cache .. os.time() .. "." .. settings.formats.rawvid
 	local input = ("%s+%d,%d"):format(display, x, y)
-	local cmd = ("ffmpeg -video_size %dx%d -f x11grab -i %s -f jack -i ffmpeg_screentool -c:v libx264 -crf 0 -preset ultrafast -c:a flac %s >&/dev/null & echo -n $! > \"%s\"")
-		:format(w, h, input, tmppath, settings.tmp .. "screentool.lua.ffmpeg.pid")
+	--local cmd = ("ffmpeg -video_size %dx%d -framerate %d -f x11grab -i %s -f jack -i ffmpeg_screentool -c:v libx264 -crf 0 -preset ultrafast -c:a flac %s  & echo -n $! > \"%s\"")
+	--local cmd = ("ffmpeg -video_size %dx%d -framerate %d -f x11grab -i %s -f pulse -i alsa_output.pci-0000_10_00.3.analog-stereo.monitor -c:v libx264 -crf 0 -preset ultrafast -c:a flac %s  & echo -n $! > \"%s\"")
+	local cmd = ("ffmpeg -video_size %dx%d -framerate %d -f x11grab -i %s -c:v libx264 -crf 0 -preset ultrafast -c:a flac \"%s\"  & echo -n $! > \"%s\"")
+		:format(w, h, 60, input, tmppath, settings.tmp .. "screentool.lua.ffmpeg.pid")
 	assert(write(settings.tmp .. "screentool.lua.ffmpeg.tmpname", tmppath))
-
+	print(cmd)
 	local ffmpeg = io.popen(cmd)
 	os.execute("sleep 1")
 	for i = 1, settings.audio.channels do
-		os.execute(("jack_connect system:monitor_%d ffmpeg_screentool:input_%d"):format(i, i))
+		--os.execute(("jack_connect system:monitor_%d ffmpeg_screentool:input_%d"):format(i, i))
 	end
 	--[[ This is in case you don't want to, or can't, enable JACK monitor. It'll just grab anything that goes to output.
 	os.execute("sleep 1")
@@ -203,6 +212,26 @@ addMode("screencap", function(args)
 	ffmpeg:close()
 end)
 
+addMode("stream", function(args)
+	local x, y, w, h = args.x, args.y, args.width, args.height
+	if not (x and y and w and h) then
+		x, y = 0, 0
+		w, h = system.width, system.height
+	end
+	local tmppath = settings.cache .. os.time() .. "." .. settings.formats.rawvid
+	local input = ("%s+%d,%d"):format(display, x, y)
+	local cmd = ("ffmpeg -video_size %dx%d -framerate %d -f x11grab -i %s -f jack -i ffmpeg_screentool -c:v libx264 -b:v 2M -preset fast -tune zerolatency -c:a aac -b:a 160k -f flv rtmp:nixo.la/live/bbb & echo -n $! > \"%s\"")
+		:format(w, h, 60, input, settings.tmp .. "screentool.lua.ffmpeg.pid")
+	assert(write(settings.tmp .. "screentool.lua.ffmpeg.tmpname", tmppath))
+	print(cmd)
+	local ffmpeg = io.popen(cmd)
+	os.execute("sleep 1")
+	for i = 1, settings.audio.channels do
+		--os.execute(("jack_connect system:monitor_%d ffmpeg_screentool:input_%d"):format(i, i))
+	end
+	ffmpeg:close()
+end)
+
 addMode("stop", function(args)
 	local pid, filename = read(settings.tmp .. "screentool.lua.ffmpeg.pid"), read(settings.tmp .. "screentool.lua.ffmpeg.tmpname")
 	os.execute("kill " .. pid)
@@ -215,7 +244,7 @@ end)
 addMode("compress", function(args)
 	notify "Compressing..."
 	local filename = args.filename:gsub(settings.formats.rawvid, settings.formats.vid)
-	local cmd = ("ffmpeg -i %s -c:v libx264 -threads 4 -vf \"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p\" -movflags +faststart -crf 20 -preset fast %s")
+	local cmd = ("ffmpeg -i \"%s\" -c:v libx264 -threads 4 -vf \"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p\" -movflags +faststart -crf 20 -preset fast \"%s\"")
 		:format(args.filename, filename)
 	os.execute(cmd)
 	args.filename = filename
