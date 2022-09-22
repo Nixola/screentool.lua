@@ -111,7 +111,13 @@ addMode("automeasure", function(args)
 	local id = p:read("*a")
 	local success, _, code = p:close()
 	if not success then
-		return success, code
+		p = io.popen("xprop -root 32x '\\t$0' _NET_ACTIVE_WINDOW")
+		id = p:read("*a")
+		local success, _, code = p:close()
+		if not success then
+			return success, code
+		end
+		id = tonumber(id:match("%s(.+)"))
 	end
 	args.id = id
 	return args
