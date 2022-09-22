@@ -106,6 +106,17 @@ addMode("measure", function(args)
 	return args
 end)
 
+addMode("automeasure", function(args)
+	local p = io.popen("xdotool getwindowfocus")
+	local id = p:read("*a")
+	local success, _, code = p:close()
+	if not success then
+		return success, code
+	end
+	args.id = id
+	return args
+end)
+
 addMode("wait_2s", function(args)
 	os.execute("sleep 2")
 	return args
@@ -113,7 +124,7 @@ end)
 
 addMode("screenshot", function(args)
 	local g = args and args.geometry
-	g = g and "-g "..g or ""
+	g = g and "-g "..g or (args.id and "-i " .. args.id or "")
 	local cmd = "maim -f " .. settings.formats.img .. " " .. g
 	print(cmd)
 	local p = io.popen("maim -f " .. settings.formats.img .. " " .. g, "r")
