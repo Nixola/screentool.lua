@@ -7,9 +7,9 @@ local display = os.getenv("DISPLAY")
 local settings = {
 	host = {
 		--internal = "web:CookieSite/static/%s/",
-		internal = "web:/srv/www/htdocs/img/",
+		internal = "web:/srv/www/static/%s/",
 		--external = "https://static.nixo.la/%s/",
-		external = "https://nixo.la/img/",
+		external = "https://%s.nixo.la/",
 	},
 	tmp = "/tmp/",
 	cache = home .. "/.cache/screentool.lua/",
