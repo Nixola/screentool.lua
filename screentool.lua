@@ -143,10 +143,20 @@ addMode("edit", function(args)
 
 	local source = args.filename
 	if not source then
+		local data = args.data
+		if not data then
+			if not os.execute("xclip -sel c -o -t TARGETS | grep image/png") then
+				notify("Couldn't find an image to edit. Aborting.")
+				return false
+			end
+			local p = io.popen("xclip -sel c -o -t image/png", "r")
+			data = p:read("*a")
+			p:close()
+		end
 		source = os.tmpname()
 		local f, e = io.open(source, "wb")
 		assert(f, e)
-		f:write(args.data)
+		f:write(data)
 		f:close()
 		os.execute("chmod a+r " .. source)
 	end
